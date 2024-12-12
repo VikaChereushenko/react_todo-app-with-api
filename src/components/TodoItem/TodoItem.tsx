@@ -1,18 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import classNames from 'classnames';
 
 type Props = {
   id: number;
   completed: boolean;
   title: string;
-  isItemLoading: boolean;
   onItemDelete: (id: number) => void;
   onItemStatusUpdate: (id: number) => void;
   onItemTitleUpdate: (
-    arg1: React.FormEvent<HTMLFormElement>,
-    arg2: number,
-    arg3: string,
-    arg4: React.Dispatch<React.SetStateAction<boolean>>,
+    arg1: number,
+    arg2: string,
+    arg3: React.Dispatch<React.SetStateAction<boolean>>,
+    arg4: boolean,
+    arg5?: React.FormEvent<HTMLFormElement>,
+  ) => void;
+  onKeyUp: (
+    arg1: React.KeyboardEvent<HTMLInputElement>,
+    arg2: React.Dispatch<React.SetStateAction<boolean>>,
   ) => void;
   processedIs: number[];
 };
@@ -20,22 +24,26 @@ export const TodoItem: React.FC<Props> = ({
   id,
   completed,
   title,
-  isItemLoading,
   onItemStatusUpdate,
   onItemDelete,
   onItemTitleUpdate,
+  onKeyUp,
   processedIs,
 }) => {
-  const isLoading = isItemLoading && processedIs.includes(id);
   const [isTitleBeingUpdated, setTitleBeingUpdated] = useState(false);
+  const prevTitle = title;
   const [newTitle, setNewTitle] = useState(title);
+  const isTitleChanged = prevTitle !== newTitle.trim();
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isTitleBeingUpdated]);
 
   return (
-    <div
-      data-cy="Todo"
-      className={classNames('todo', 'item-enter-done')}
-      key={id}
-    >
+    <div data-cy="Todo" className={classNames('todo', { completed })}>
       {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
       <label className="todo__status-label">
         <input
@@ -46,8 +54,38 @@ export const TodoItem: React.FC<Props> = ({
           onChange={() => onItemStatusUpdate(id)}
         />
       </label>
-
-      {!isTitleBeingUpdated ? (
+      {isTitleBeingUpdated ? (
+        <form
+          onSubmit={event =>
+            onItemTitleUpdate(
+              id,
+              newTitle,
+              setTitleBeingUpdated,
+              isTitleChanged,
+              event,
+            )
+          }
+        >
+          <input
+            data-cy="TodoTitleField"
+            ref={inputRef}
+            type="text"
+            className="todo__title-field"
+            placeholder="Empty todo will be deleted"
+            value={newTitle}
+            onBlur={() =>
+              onItemTitleUpdate(
+                id,
+                newTitle,
+                setTitleBeingUpdated,
+                isTitleChanged,
+              )
+            }
+            onKeyUp={event => onKeyUp(event, setTitleBeingUpdated)}
+            onChange={event => setNewTitle(event.target.value)}
+          />
+        </form>
+      ) : (
         <>
           <span
             data-cy="TodoTitle"
@@ -56,8 +94,6 @@ export const TodoItem: React.FC<Props> = ({
           >
             {title}
           </span>
-
-          {/* Remove button appears only on hover */}
           <button
             type="button"
             className="todo__remove"
@@ -67,31 +103,11 @@ export const TodoItem: React.FC<Props> = ({
             ×
           </button>
         </>
-      ) : (
-        <form
-          onSubmit={event =>
-            onItemTitleUpdate(event, id, newTitle, setTitleBeingUpdated)
-          }
-          onBlur={event =>
-            onItemTitleUpdate(event, id, newTitle, setTitleBeingUpdated)
-          }
-        >
-          <input
-            type="text"
-            placeholder="Empty todo will be deleted"
-            value={newTitle}
-            onChange={event => setNewTitle(event.target.value)}
-            disabled={isLoading}
-            autoFocus
-          />
-        </form>
       )}
-
-      {/* overlay will cover the todo while it is being deleted or updated */}
       <div
         data-cy="TodoLoader"
-        className={classNames('modal', 'overlay', {
-          'is-active': isLoading,
+        className={classNames('modal overlay', {
+          'is-active': processedIs.includes(id),
         })}
       >
         <div className="modal-background has-background-white-ter" />

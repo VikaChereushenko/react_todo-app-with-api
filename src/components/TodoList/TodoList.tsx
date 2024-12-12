@@ -9,12 +9,16 @@ type Props = {
   onDelete: (id: number) => void;
   onStatusUpdate: (id: number) => void;
   onUpdatedTitleSubmit: (
-    arg1: React.FormEvent<HTMLFormElement>,
-    arg2: number,
-    arg3: string,
-    arg4: React.Dispatch<React.SetStateAction<boolean>>,
+    arg1: number,
+    arg2: string,
+    arg3: React.Dispatch<React.SetStateAction<boolean>>,
+    arg4: boolean,
+    arg5?: React.FormEvent<HTMLFormElement>,
   ) => void;
-  loading: boolean;
+  onKeyUp: (
+    arg1: React.KeyboardEvent<HTMLInputElement>,
+    arg2: React.Dispatch<React.SetStateAction<boolean>>,
+  ) => void;
   processedIs: number[];
 };
 
@@ -23,7 +27,7 @@ export const TodoList: React.FC<Props> = ({
   onDelete,
   onStatusUpdate,
   onUpdatedTitleSubmit,
-  loading,
+  onKeyUp,
   processedIs,
 }) => {
   return (
@@ -40,7 +44,7 @@ export const TodoList: React.FC<Props> = ({
             onItemDelete={onDelete}
             onItemStatusUpdate={onStatusUpdate}
             onItemTitleUpdate={onUpdatedTitleSubmit}
-            isItemLoading={loading}
+            onKeyUp={onKeyUp}
             processedIs={processedIs}
           />
         );

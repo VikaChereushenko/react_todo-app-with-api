@@ -192,23 +192,25 @@ export const App: React.FC = () => {
   };
 
   const handleTitleUpdate = (
-    e: React.FormEvent<HTMLFormElement>,
     id: number,
     newTitle: string,
     setTitleBeingUpdated: React.Dispatch<React.SetStateAction<boolean>>,
+    isTitleChanged: boolean,
+    e?: React.FormEvent<HTMLFormElement>,
   ) => {
-    e.preventDefault();
+    e?.preventDefault();
 
     const normalizeNewTitle = newTitle.trim();
-    const isTitleChanged = normalizeNewTitle !== title;
 
-    if (!normalizeNewTitle.length) {
+    if (!normalizeNewTitle) {
       handleDeleteOneTodo(id);
 
       return;
     }
 
     if (!isTitleChanged) {
+      setTitleBeingUpdated(false);
+
       return;
     }
 
@@ -216,7 +218,6 @@ export const App: React.FC = () => {
     const toUpdate = { title: normalizeNewTitle };
 
     if (changeItem) {
-      setLoading(true);
       setProcessedIs(existing => [...existing, id]);
       updateTodo(id, toUpdate)
         .then(() => {
@@ -228,10 +229,18 @@ export const App: React.FC = () => {
         })
         .catch(() => setErrorMessage('Unable to update a todo'))
         .finally(() => {
-          setLoading(false);
           setProcessedIs([]);
           setTitleBeingUpdated(false);
         });
+    }
+  };
+
+  const handleKeyUp = (
+    event: React.KeyboardEvent<HTMLInputElement>,
+    setTitleBeingUpdated: React.Dispatch<React.SetStateAction<boolean>>,
+  ) => {
+    if (event.key === 'Escape') {
+      setTitleBeingUpdated(false);
     }
   };
 
@@ -259,7 +268,7 @@ export const App: React.FC = () => {
           onDelete={handleDeleteOneTodo}
           onStatusUpdate={handleStatusUpdate}
           onUpdatedTitleSubmit={handleTitleUpdate}
-          loading={loading}
+          onKeyUp={handleKeyUp}
           processedIs={processedIs}
         />
 
