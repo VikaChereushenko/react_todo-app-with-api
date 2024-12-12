@@ -72,6 +72,7 @@ export const App: React.FC = () => {
       .then(response => {
         setTitle('');
         setTodos(existing => [...existing, response]);
+        setLoading(false);
       })
       .catch(() => setErrorMessage('Unable to add a todo'))
       .finally(() => {
@@ -89,8 +90,8 @@ export const App: React.FC = () => {
       })
       .catch(() => setErrorMessage('Unable to delete a todo'))
       .finally(() => {
-        setLoading(false);
         setProcessedIs([]);
+        setLoading(false);
       });
   };
 
@@ -115,7 +116,6 @@ export const App: React.FC = () => {
   };
 
   const handleStatusUpdate = (id: number) => {
-    setLoading(true);
     setProcessedIs(existing => [...existing, id]);
 
     const changeItem = todos.find(todo => todo.id === id);
@@ -133,7 +133,6 @@ export const App: React.FC = () => {
         })
         .catch(() => setErrorMessage('Unable to update a todo'))
         .finally(() => {
-          setLoading(false);
           setProcessedIs([]);
         });
     }
@@ -226,11 +225,11 @@ export const App: React.FC = () => {
               el.id === id ? { ...el, title: toUpdate.title } : el,
             ),
           );
+          setTitleBeingUpdated(false);
         })
         .catch(() => setErrorMessage('Unable to update a todo'))
         .finally(() => {
           setProcessedIs([]);
-          setTitleBeingUpdated(false);
         });
     }
   };
