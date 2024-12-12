@@ -37,10 +37,10 @@ export const TodoItem: React.FC<Props> = ({
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (inputRef.current) {
+    if (isTitleBeingUpdated && inputRef.current) {
       inputRef.current.focus();
     }
-  }, [isTitleBeingUpdated]);
+  });
 
   return (
     <div data-cy="Todo" className={classNames('todo', { completed })}>
