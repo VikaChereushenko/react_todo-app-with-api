@@ -1,29 +1,58 @@
-import React from 'react';
+import React, { useCallback } from 'react';
+import { useMemo } from 'react';
 import classNames from 'classnames';
+
+import { deleteTodo } from '../../api/todos';
+import { capitalizeFirstLetter, filterOptions } from '../Helpers/Helpers';
 
 import { Todo } from '../../types/Todo';
 import { TodoStatus } from '../../types/Status';
 
 type Props = {
-  todos: Todo[];
+  todoList: Todo[];
+  updateTodolist: React.Dispatch<React.SetStateAction<Todo[]>>;
   status: TodoStatus;
-  onStatusChange: (arg: TodoStatus) => void;
-  clearCompletedTodos: () => void;
+  onStatusChange: (status: TodoStatus) => void;
+  updateProcessedIds: React.Dispatch<React.SetStateAction<number[]>>;
+  onError: React.Dispatch<React.SetStateAction<string>>;
 };
 
 export const Footer: React.FC<Props> = ({
-  todos,
+  todoList,
+  updateTodolist,
   status,
   onStatusChange,
-  clearCompletedTodos,
+  updateProcessedIds,
+  onError,
 }) => {
-  const activeTodos = todos.filter(todo => !todo.completed);
-  const isAnyCompleted = todos.some(todo => todo.completed);
-  const filterOptions = Object.values(TodoStatus);
+  const activeTodos = useMemo(
+    () => todoList.filter(todo => !todo.completed),
+    [todoList],
+  );
+  const isAnyCompleted = useMemo(
+    () => todoList.some(todo => todo.completed),
+    [todoList],
+  );
 
-  const capitalizeFirstLetter = (value: TodoStatus) => {
-    return `${value.charAt(0).toUpperCase()}${value.slice(1)}`;
-  };
+  const handleDeleteCompletedTodos = useCallback(() => {
+    todoList.forEach(todo => {
+      if (todo.completed) {
+        updateProcessedIds(existing => [...existing, todo.id]);
+        deleteTodo(todo.id)
+          .then(() =>
+            updateTodolist(existing =>
+              existing.filter(current => current.id !== todo.id),
+            ),
+          )
+          .catch(() => onError('Unable to delete a todo'))
+          .finally(() => {
+            updateProcessedIds(existing =>
+              existing.filter(id => id !== todo.id),
+            );
+          });
+      }
+    });
+  }, [todoList]);
 
   return (
     <footer className="todoapp__footer" data-cy="Footer">
@@ -58,7 +87,7 @@ export const Footer: React.FC<Props> = ({
         className="todoapp__clear-completed"
         data-cy="ClearCompletedButton"
         disabled={!isAnyCompleted}
-        onClick={clearCompletedTodos}
+        onClick={handleDeleteCompletedTodos}
       >
         Clear completed
       </button>

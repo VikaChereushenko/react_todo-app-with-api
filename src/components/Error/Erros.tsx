@@ -3,7 +3,7 @@ import classNames from 'classnames';
 
 type Props = {
   errorMessage: string;
-  hideError: (arg: string) => void;
+  hideError: (errorMessage: string) => void;
 };
 
 export const Error: React.FC<Props> = ({ errorMessage, hideError }) => {
